@@ -31,22 +31,25 @@ export async function upsertConversations(
   if (rows.length === 0) return { upserted: 0, pruned: 0 };
 
   const db = getSupabase();
+  const syncStartedAt = new Date().toISOString();
   const { error } = await db.from("conversations").upsert(
     rows.map((row) => ({
       ...row,
       page_id: pageId,
-      updated_at: new Date().toISOString(),
+      updated_at: syncStartedAt,
     })),
     { onConflict: "psid" },
   );
   if (error) throw error;
 
-  const psids = rows.map((row) => row.psid);
+  // Prune by staleness (updated_at older than this run) rather than a
+  // `not in (psids)` list: with thousands of PSIDs that filter is encoded
+  // into the request URL and can blow past URL/header size limits.
   const { error: pruneError, count } = await db
     .from("conversations")
     .delete({ count: "exact" })
     .eq("page_id", pageId)
-    .not("psid", "in", psids);
+    .lt("updated_at", syncStartedAt);
   if (pruneError) throw pruneError;
 
   return { upserted: rows.length, pruned: count ?? 0 };

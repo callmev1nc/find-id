@@ -28,7 +28,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|setup).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|login|setup|api/login|api/logout).*)",
+  ],
 };
 
 export const runtime = "nodejs";

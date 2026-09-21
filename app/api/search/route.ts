@@ -14,9 +14,7 @@ export async function GET(request: NextRequest) {
     }));
     return NextResponse.json({ results });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Search failed" },
-      { status: 500 },
-    );
+    console.error("[search] failed:", error);
+    return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 }
